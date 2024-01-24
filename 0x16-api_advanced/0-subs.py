@@ -3,9 +3,18 @@
 import requests
 import sys
 
-if __name__ == '__main__':
-    number_of_subscribers = __import__('0-subs').number_of_subscribers
-    if len(sys.argv) < 2:
-        print("Please pass an argument for the subreddit to seach.")
-    else:
-        print("{:d}".format(number_of_subscribers(sys.argv[1])))
+def number_of_subscribers(subreddit):
+    """  Args:
+        subreddit: subreddit name
+    Returns:
+        number of subscribers to the subreddit,
+        or 0 if subreddit requested NOT VALID"""
+    headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) 9'}
+    url = "https://www.reddit.com/r/{}/about.json".format(subreddit)
+    response = requests.get(url, headers=headers, allow_redirects=False)
+
+    if response.status_code == 200:
+        return (response.json().get("data").get("subscribers"))
+    return (0)
+
+
