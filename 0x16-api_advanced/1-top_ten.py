@@ -2,7 +2,7 @@ import requests
 
 def top_ten(subreddit):
     url = f'https://www.reddit.com/r/{subreddit}/hot.json?limit=10'
-    headers = {'User-Agent': 'linux:0x16.api.advanced:v1.0.0 (by/Belkien)'}  # Set your own User-Agent header
+    headers = {'User-Agent': 'api advanced 0x16 (by/Belkien)'}  
 
     response = requests.get(url, headers=headers)
 
