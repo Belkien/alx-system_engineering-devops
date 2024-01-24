@@ -1,7 +1,6 @@
 #!/usr/bin/python3
-"""
-0-main
-"""
+"""Function querying subscribers on a given Reddit API."""
+import requests
 import sys
 
 if __name__ == '__main__':
