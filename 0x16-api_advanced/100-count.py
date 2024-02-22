@@ -1,63 +1,50 @@
 #!/usr/bin/python3
-""" Module for storing the count_words function. """
-from requests import get
+"""Function to count words in all hot posts of a given Reddit subreddit."""
+import requests
 
 
-def count_words(subreddit, word_list, word_count=[], page_after=None):
+def count_words(subreddit, word_list, count_dict={}, after=None):
+    """Prints counts of given words found in hot posts of a given subreddit.
+
+    Args:
+        subreddit (str): The subreddit to search.
+        word_list (list): The list of words to search for in post titles.
+        instances (obj): Key/value pairs of words/counts.
+        after (str): The parameter for the next page of the API results.
+        count (int): The parameter of results matched thus far.
     """
-    Prints the count of the given words present in the title of the
-    subreddit's hottest articles.
-    """
-    headers = {'User-Agent': 'HolbertonSchool'}
-
-    word_list = [word.lower() for word in word_list]
-
-    if bool(word_count) is False:
-        for word in word_list:
-            word_count.append(0)
-
-    if page_after is None:
-        url = 'https://www.reddit.com/r/{}/hot.json'.format(subreddit)
-        r = get(url, headers=headers, allow_redirects=False)
-        if r.status_code == 200:
-            for child in r.json()['data']['children']:
-                i = 0
-                for i in range(len(word_list)):
-                    for word in [w for w in child['data']['title'].split()]:
-                        word = word.lower()
-                        if word_list[i] == word:
-                            word_count[i] += 1
-                    i += 1
-
-            if r.json()['data']['after'] is not None:
-                count_words(subreddit, word_list,
-                            word_count, r.json()['data']['after'])
-    else:
-        url = ('https://www.reddit.com/r/{}/hot.json?after={}'
-               .format(subreddit,
-                       page_after))
-        r = get(url, headers=headers, allow_redirects=False)
-
-        if r.status_code == 200:
-            for child in r.json()['data']['children']:
-                i = 0
-                for i in range(len(word_list)):
-                    for word in [w for w in child['data']['title'].split()]:
-                        word = word.lower()
-                        if word_list[i] == word:
-                            word_count[i] += 1
-                    i += 1
-            if r.json()['data']['after'] is not None:
-                count_words(subreddit, word_list,
-                            word_count, r.json()['data']['after'])
-            else:
-                dicto = {}
-                for key_word in list(set(word_list)):
-                    i = word_list.index(key_word)
-                    if word_count[i] != 0:
-                        dicto[word_list[i]] = (word_count[i] *
-                                               word_list.count(word_list[i]))
-
-                for key, value in sorted(dicto.items(),
-                                         key=lambda x: (-x[1], x[0])):
-                    print('{}: {}'.format(key, value))
+    params = {"limit": 50}
+    if after:
+        params["after"] = after
+    req = requests.get(
+        "https://www.reddit.com/r/{}/hot.json".format(subreddit),
+        headers={
+            "User-Agent": "underscoDe@alx-holbertonschool"},
+        params=params,
+        allow_redirects=False)
+    if req.status_code == 200:
+        posts = req.json().get("data").get("children")
+        for post in posts:
+            title = post.get("data").get("title")
+            word_list = [word.lower() for word in word_list]
+            for word in word_list:
+                w_count = title.split().count(word)
+                if count_dict.get(word):
+                    count_dict[word] += w_count
+                else:
+                    count_dict[word] = w_count
+        if req.json().get("data").get("after"):
+            count_words(
+                subreddit,
+                word_list=word_list,
+                count_dict=count_dict,
+                after=req.json().get("data").get("after"))
+        else:
+            for pair in sorted(
+                    count_dict.items(),
+                    key=lambda kv: (
+                        kv[1],
+                        kv[0]),
+                    reverse=True):
+                if pair[1]:
+                    print("{}: {}".format(pair[0].strip(), pair[1]))

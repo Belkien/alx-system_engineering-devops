@@ -1,32 +1,131 @@
-## Postmortem
+0x19. Postmortem
+================
 
-- Upon the release of `ALX School’s System Engineering & Dev Ops project 0x19`, an outage occurred on an isolated `Ubuntu 14.04` container running an Apache web server. GET requests on the server led to 500 Internal Server Error's, when the expected response was an HTML file defining a simple Holberton WordPress site .
+DevOpsSysAdmin
 
-## Debugging Process
-- 1 : Checked running processes using ps aux. Two apache2 processes - root and www-data - were properly running.
+-   By Sylvain Kalache
+-   Weight: 1
+-   Project over - took place from
 
-- 2 : Looked in the sites-available folder of the /etc/apache2/ directory. Determined that the web server was serving content located in /var/www/html/.
+    Apr 25, 2022
 
-- 3 : In one terminal, ran strace on the PID of the root Apache process. In another, curled the server. Expected great things... only to be disappointed. strace gave no useful information.
+    to
 
-- 4 : Repeated step 3, except on the PID of the www-data process. Kept expectations lower this time... but was rewarded! strace revelead an -1 ENOENT (No such file or directory) error occurring upon an attempt to access the file /var/www/html/wp-includes/class-wp-locale.phpp.
+    May 2, 2022
 
-- 5 : Looked through files in the /var/www/html/ directory one-by-one, using Vim pattern matching to try and locate the erroneous .phpp file extension. Located it in the wp-settings.php file. (Line 137, require_once( ABSPATH . WPINC . '/class-wp-locale.php' );).
+    - you're done with 100% of tasks.
+-   Manual QA review was done on
 
-- 6 : Removed the trailing p from the line.
+    May 14, 2022 9:15 AM
 
-- 7 : Tested another curl on the server. 200 A-ok!
+#### In a nutshell...
 
-- 8 : Wrote a Puppet manifest to automate fixing of the error.
+-   **Manual QA review:** 0.0/13 mandatory & 0.0/1 optional
+-   **Altogether:**  **0.0%**
+    -   Mandatory: 0.0%
+    -   Optional: 0.0%
+    -   Calculation:  0.0% + (0.0% * 0.0%)  == **0.0%**
 
-	* Summation
-- In short, a typo. Gotta love’em. In full, the WordPress app was encountering a critical error in wp-settings.php when trying to load the file class-wp-locale.phpp. The correct file name, located in the wp-content directory of the application folder, was class-wp-locale.php.
+### Concepts
 
-- Patch involved a simple fix on the typo, removing the trailing p.
+*For this project, we expect you to look at this concept:*
 
-	* Prevention
-- This outage was not a web server error, but an application error. To prevent such outages moving forward, please keep the following in mind.
+-   [On-call](https://alx-intranet.hbtn.io/concepts/39)
 
-- Test the application before deploying. This error would have arisen and could have been addressed earlier had the app been tested.
+Background Context
+------------------
 
-- Note that in response to this error, I wrote a Puppet manifest [0x17-web_stack_debugging_3](0-strace_is_your_friend.pp) to automate fixing of any such identitical errors should they occur in the future. The manifest replaces any phpp extensions in the file /var/www/html/wp-settings.php with php.
+[![](https://s3.amazonaws.com/intranet-projects-files/holbertonschool-sysadmin_devops/294/tWUPWmR.png)](https://youtu.be/rp5cVMNmbro)[](http://savefrom.net/?url=https%3A%2F%2Fyoutu.be%2Frp5cVMNmbro&utm_source=ff&utm_medium=extensions&utm_campaign=link_modifier "Obtenir un lien direct")
+
+Any software system will eventually fail, and that failure can come stem from a wide range of possible factors: bugs, traffic spikes, security issues, hardware failures, natural disasters, human error... Failing is normal and failing is actually a great opportunity to learn and improve. Any great Software Engineer must learn from his/her mistakes to make sure that they won't happen again. Failing is fine, but failing twice because of the same issue is not.
+
+A postmortem is a tool widely used in the tech industry. After any outage, the team(s) in charge of the system will write a summary that has 2 main goals:
+
+-   To provide the rest of the company's employees easy access to information detailing the cause of the outage. Often outages can have a huge impact on a company, so managers and executives have to understand what happened and how it will impact their work.
+-   And to ensure that the root cause(s) of the outage has been discovered and that measures are taken to make sure it will be fixed.
+
+Resources
+---------
+
+**Read or watch**:
+
+-   [Incident Report, also referred to as a Postmortem](https://alx-intranet.hbtn.io/rltoken/vkEjk-M6yBWW-wyB-7-I9Q "Incident Report, also referred to as a Postmortem")
+-   [How to run a Postmortem](https://alx-intranet.hbtn.io/rltoken/pzE_VO7Bfe49K_MhkOyzdQ "How to run a Postmortem")
+
+More Info
+---------
+
+### Manual QA Review
+
+**It is your responsibility to request a review for your postmortem from a peer before the project's deadline. If no peers have been reviewed, you should request a review from a TA or staff member.**
+
+Tasks
+-----
+
+### 0\. My first postmortem
+
+mandatory
+
+
+[![](https://s3.amazonaws.com/intranet-projects-files/holbertonschool-sysadmin_devops/294/pQ9YzVY.gif)](https://twitter.com/devopsreact/status/834887829486399488)
+
+Using one of the web stack debugging project issue or an outage you have personally face, write a postmortem. Most of you will never have faced an outage, so just get creative and invent your own :)
+
+Requirements:
+
+-   Issue Summary (that is often what executives will read) must contain:
+    -   duration of the outage with start and end times (including timezone)
+    -   what was the impact (what service was down/slow? What were user experiencing? How many % of the users were affected?)
+    -   what was the root cause
+-   Timeline (format bullet point, format: `time` - `keep it short, 1 or 2 sentences`) must contain:
+
+    -   when was the issue detected
+    -   how was the issue detected (monitoring alert, an engineer noticed something, a customer complained...)
+    -   actions taken (what parts of the system were investigated, what were the assumption on the root cause of the issue)
+    -   misleading investigation/debugging paths that were taken
+    -   which team/individuals was the incident escalated to
+    -   how the incident was resolved
+-   Root cause and resolution must contain:
+
+    -   explain in detail what was causing the issue
+    -   explain in detail how the issue was fixed
+-   Corrective and preventative measures must contain:
+
+    -   what are the things that can be improved/fixed (broadly speaking)
+    -   a list of tasks to address the issue (be very specific, like a TODO, example: patch Nginx server, add monitoring on server memory...)
+-   Be brief and straight to the point, between 400 to 600 words
+
+While postmortem format can vary, stick to this one so that you can get properly reviewed by your peers.
+
+Please, remember that these blogs must be written in English to further your technical ability in a variety of settings.
+
+#### Add URLs here:
+
+1.  <https://docs.google.com/document/d/1Foq7OSh1XHp5Cqxq12GEZEHGOjURQQT_n4HqOH82Ydg/edit?usp=sharing>
+
+**Repo:**
+
+-   GitHub repository: `alx-system_engineering-devops`
+-   Directory: `0x19-postmortem`
+-   File: `README.md`
+
+### 1\. Make people want to read your postmortem
+
+#advanced
+
+
+We are constantly stormed by a quantity of information, it's tough to get people to read you.
+
+Make your post-mortem attractive by adding humour, a pretty diagram or anything that would catch your audience attention.
+
+Please, remember that these blogs must be written in English to further your technical ability in a variety of settings.
+
+#### Add URLs here:
+
+1.  <https://docs.google.com/document/d/1Foq7OSh1XHp5Cqxq12GEZEHGOjURQQT_n4HqOH82Ydg/edit?usp=sharing>
+
+**Repo:**
+
+-   GitHub repository: `alx-system_engineering-devops`
+-   Directory: `0x19-postmortem`
+-   File: `README.md`
